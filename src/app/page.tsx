@@ -1,101 +1,96 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+import { basicSetup } from "@uiw/codemirror-extensions-basic-setup"; // ✅ 최신 패키지 사용
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
+
+// ✅ CodeMirror 동적 로드 (SSR 방지)
+const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), {
+  ssr: false,
+});
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [docId, setDocId] = useState("");
+  const [content, setContent] = useState(""); // ✅ 문서 내용 상태 추가
+  const [wsProvider, setWsProvider] = useState<WebsocketProvider | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+  // ✅ 새 문서 ID 생성 함수
+  const generateDocId = () =>
+    `doc-${Math.random().toString(36).substring(2, 9)}`;
+
+  // ✅ 문서 생성 버튼 클릭 시 실행
+  const handleCreateNewDoc = async () => {
+    const newDocId = generateDocId();
+    setDocId(newDocId);
+    setContent(""); // 새 문서이므로 내용 초기화
+
+    // ✅ 새 문서를 MongoDB에 저장 (saveDoc API 호출)
+    await fetch("/api/saveDoc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ docId: newDocId, content: "" }),
+    });
+  };
+
+  useEffect(() => {
+    if (!docId) return;
+
+    // ✅ MongoDB에서 기존 문서 불러오기
+    fetch(`/api/getDoc?docId=${docId}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.content) {
+          setContent(data.content); // 불러온 문서 내용 적용
+        }
+      });
+
+    // ✅ WebSocket 연결 및 실시간 편집 적용
+    const ydoc = new Y.Doc();
+    const provider = new WebsocketProvider("ws://localhost:4000", docId, ydoc);
+    setWsProvider(provider);
+
+    // ✅ 자동 저장 기능 (5초마다 저장)
+    const saveInterval = setInterval(() => {
+      fetch("/api/saveDoc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ docId, content }),
+      });
+    }, 5000);
+
+    return () => {
+      clearInterval(saveInterval);
+      provider.destroy();
+    };
+  }, [docId, content]);
+
+  return (
+    <div>
+      <h1>📝 실시간 협업 에디터</h1>
+
+      {/* ✅ 새 문서 생성 버튼 */}
+      <button onClick={handleCreateNewDoc} style={{ marginRight: "10px" }}>
+        ➕ 새 문서 만들기
+      </button>
+
+      {/* ✅ 사용자가 직접 문서 ID 입력 */}
+      <input
+        type="text"
+        value={docId}
+        onChange={(e) => setDocId(e.target.value)}
+        placeholder="문서 ID 입력"
+      />
+
+      {/* ✅ CodeMirror 편집기 추가 */}
+      {docId && (
+        <CodeMirror
+          value={content}
+          height="400px"
+          extensions={[basicSetup()]} // ✅ 최신 패키지로 적용
+          onChange={(value) => setContent(value)} // 사용자가 입력하면 상태 업데이트
+        />
+      )}
     </div>
   );
 }
