@@ -40,7 +40,8 @@ export default function EditorPage() {
         setCollaborators(data.collaborators || []);
       });
 
-    const socket = new WebSocket("ws://localhost:3001");
+    const socket = new WebSocket(process.env.NEXT_PUBLIC_WS_URL!);
+
     socketRef.current = socket;
 
     socket.onopen = () => {

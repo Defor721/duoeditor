@@ -1,44 +1,43 @@
-const WebSocket = require("ws");
+const express = require("express");
+const { WebSocketServer } = require("ws");
 const http = require("http");
 
-const server = http.createServer();
-const wss = new WebSocket.Server({ server });
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });
 
-const rooms = new Map(); // { docId: Set<socket> }
+const docs = {};
 
 wss.on("connection", (ws) => {
-  let currentRoom = null;
+  let currentDocId = null;
 
   ws.on("message", (message) => {
-    const parsed = JSON.parse(message);
+    const data = JSON.parse(message);
 
-    if (parsed.type === "join") {
-      currentRoom = parsed.docId;
-      if (!rooms.has(currentRoom)) {
-        rooms.set(currentRoom, new Set());
+    if (data.type === "join") {
+      currentDocId = data.docId;
+      if (docs[currentDocId]) {
+        ws.send(
+          JSON.stringify({ type: "update", content: docs[currentDocId] })
+        );
       }
-      rooms.get(currentRoom).add(ws);
     }
 
-    if (parsed.type === "update" && currentRoom) {
-      const peers = rooms.get(currentRoom) || new Set();
-      for (const client of peers) {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
+    if (data.type === "update") {
+      docs[data.docId] = data.content;
+
+      wss.clients.forEach((client) => {
+        if (client !== ws && client.readyState === 1) {
           client.send(
-            JSON.stringify({ type: "update", content: parsed.content })
+            JSON.stringify({ type: "update", content: data.content })
           );
         }
-      }
-    }
-  });
-
-  ws.on("close", () => {
-    if (currentRoom && rooms.has(currentRoom)) {
-      rooms.get(currentRoom).delete(ws);
+      });
     }
   });
 });
 
-server.listen(3001, () => {
-  console.log("✅ WebSocket server running on ws://localhost:3001");
+const PORT = process.env.PORT || 3001;
+server.listen(PORT, () => {
+  console.log(`🚀 WebSocket Server running on port ${PORT}`);
 });
