@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 
 // CodeMirror 동적 import
 const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), {
@@ -14,15 +15,23 @@ type Collaborator = {
   email: string;
 };
 
+type OnlineUser = {
+  email: string;
+  name?: string;
+};
+
 export default function EditorPage() {
   const { docId } = useParams();
   const router = useRouter();
+  const { data: session } = useSession();
+
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [content, setContent] = useState("");
   const [isMounted, setIsMounted] = useState(false);
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
-  const [collaborators, setCollaborators] = useState<Collaborator[]>([]); // 🔥 협업자 목록
+  const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]); // ✅ 실시간 접속자 목록
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -51,20 +60,34 @@ export default function EditorPage() {
     socketRef.current = socket;
 
     socket.onopen = () => {
-      socket.send(JSON.stringify({ type: "join", docId }));
+      socket.send(
+        JSON.stringify({
+          type: "join",
+          docId,
+          user: {
+            email: session?.user?.email,
+            name: session?.user?.name,
+          },
+        })
+      );
     };
 
     socket.onmessage = (event) => {
       const data = JSON.parse(event.data);
+
       if (data.type === "update") {
         setContent(data.content);
+      }
+
+      if (data.type === "users") {
+        setOnlineUsers(data.users || []);
       }
     };
 
     return () => {
       socket.close();
     };
-  }, [docId]);
+  }, [docId, session?.user?.email, session?.user?.name]);
 
   const handleContentChange = (value: string) => {
     setContent(value);
@@ -105,7 +128,6 @@ export default function EditorPage() {
       if (res.ok) {
         alert("✅ 협업자가 초대되었습니다!");
         setCollaboratorEmail("");
-        // 초대한 후 목록 새로고침
         const updated = await fetch(`/api/getCollaborators?docId=${docId}`);
         const data = await updated.json();
         setCollaborators(data || []);
@@ -124,7 +146,6 @@ export default function EditorPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">DuoEditor</h1>
 
-        {/* 🔙 대시보드 이동 */}
         <button
           onClick={() => router.push("/dashboard")}
           className="text-sm text-blue-600 hover:underline"
@@ -135,7 +156,6 @@ export default function EditorPage() {
 
       <p className="text-gray-500 text-sm mb-4">문서 ID: {docId}</p>
 
-      {/* 제목 입력 */}
       <input
         type="text"
         value={title}
@@ -144,7 +164,6 @@ export default function EditorPage() {
         className="mb-4 w-full p-2 border rounded text-xl font-semibold"
       />
 
-      {/* 카테고리 선택 */}
       <select
         value={category}
         onChange={(e) => setCategory(e.target.value)}
@@ -157,7 +176,6 @@ export default function EditorPage() {
         <option value="기타">기타</option>
       </select>
 
-      {/* 저장 버튼 */}
       <button
         onClick={handleSave}
         className="mb-6 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
@@ -165,7 +183,24 @@ export default function EditorPage() {
         💾 저장
       </button>
 
-      {/* 🔥 협업자 초대 기능 */}
+      {/* 🔥 실시간 접속 중인 협업자 */}
+      {onlineUsers.length > 0 && (
+        <div className="mb-6 bg-blue-50 p-3 rounded">
+          <p className="font-semibold mb-2">🟢 실시간 접속자</p>
+          <ul className="flex flex-wrap gap-2 text-sm">
+            {onlineUsers.map((user, idx) => (
+              <li
+                key={idx}
+                className="bg-white border border-blue-200 px-2 py-1 rounded shadow-sm"
+              >
+                {user.name || user.email}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 🔍 초대된 협업자 */}
       <div className="mb-6">
         <div className="flex gap-2 items-center mb-2">
           <input
@@ -183,10 +218,9 @@ export default function EditorPage() {
           </button>
         </div>
 
-        {/* 🔍 협업자 목록 */}
         {collaborators.length > 0 && (
           <div className="bg-gray-100 p-3 rounded">
-            <p className="font-semibold mb-1">👥 초대된 협업자</p>
+            <p className="font-semibold mb-1">📋 초대된 협업자</p>
             <ul className="list-disc ml-5 text-sm text-gray-700">
               {collaborators.map((user) => (
                 <li key={user.id}>{user.email}</li>
@@ -196,7 +230,6 @@ export default function EditorPage() {
         )}
       </div>
 
-      {/* 코드 에디터 */}
       <CodeMirror
         value={content}
         height="400px"
