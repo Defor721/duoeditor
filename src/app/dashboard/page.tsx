@@ -7,11 +7,6 @@ import { NewDocButton } from "../components/UI/NewDocButton";
 import LogoutButton from "@/app/components/UI/LogoutButton";
 import Link from "next/link";
 
-<header className="flex items-center justify-between mb-6">
-  <h1 className="text-2xl font-bold">📄 내 문서</h1>
-  <LogoutButton /> {/* ✅ 클라이언트 컴포넌트니까 안전 */}
-</header>;
-
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
