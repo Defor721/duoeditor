@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   if (!session) {
     redirect("/login");
   }
-
+  const categories = ["기획", "개발", "디자인", "기타"];
   // MongoDB에서 로그인한 유저의 문서 가져오기
   const client = await clientPromise;
   const db = client.db("collab-editor");
@@ -37,39 +37,43 @@ export default async function DashboardPage() {
 
       <div className="mt-10">
         <h2 className="text-xl font-semibold mb-2">📄 내 문서 목록</h2>
-        <div className="mt-10">
+        <div className="mt-4 mb-6">
           <NewDocButton />
         </div>
 
         {docs.length === 0 ? (
           <p className="text-gray-500">작성한 문서가 없습니다.</p>
         ) : (
-          <ul className="space-y-3">
-            {docs.map((doc, index: number) => (
-              <li
-                key={doc._id.toString()}
-                className={`p-4 rounded shadow transition ${
-                  index === 0
-                    ? "bg-yellow-100 border border-yellow-300"
-                    : "bg-white"
-                }`}
-              >
-                <Link href={`/editor/${doc.docId}`}>
-                  <div className="cursor-pointer">
-                    <strong>{doc.title || "제목 없음"}</strong>
-                    <p className="text-sm text-gray-500">
-                      {new Date(doc.updatedAt).toLocaleString()}
-                    </p>
-                    {index === 0 && (
-                      <span className="text-xs text-yellow-800 bg-yellow-200 px-2 py-0.5 rounded mt-1 inline-block">
-                        🕒 최근 편집됨
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="space-y-6">
+            {categories.map((cat) => {
+              const filteredDocs = docs.filter((doc) => doc.category === cat);
+
+              if (filteredDocs.length === 0) return null;
+
+              return (
+                <div key={cat}>
+                  <h3 className="text-lg font-bold mb-2">📂 {cat}</h3>
+                  <ul className="space-y-2">
+                    {filteredDocs.map((doc) => (
+                      <li
+                        key={doc._id.toString()}
+                        className="bg-white shadow p-4 rounded hover:bg-gray-50 transition"
+                      >
+                        <Link href={`/editor/${doc.docId}`}>
+                          <div>
+                            <strong>{doc.title || "제목 없음"}</strong>
+                            <p className="text-sm text-gray-500 mt-1">
+                              {new Date(doc.updatedAt).toLocaleString()}
+                            </p>
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     </main>

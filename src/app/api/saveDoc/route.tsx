@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db("collab-editor");
 
-    const { docId, content, title } = await req.json();
+    const { docId, content, title, category } = await req.json();
 
     if (!docId || content === undefined) {
       return NextResponse.json(
@@ -45,6 +45,7 @@ export async function POST(req: NextRequest) {
           $set: {
             title,
             content,
+            category,
             updatedAt: new Date(),
           },
         }
