@@ -1,4 +1,3 @@
-// app/api/saveDoc/route.ts
 import clientPromise from "@/app/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
@@ -18,7 +17,7 @@ export async function POST(req: NextRequest) {
     const client = await clientPromise;
     const db = client.db("collab-editor");
 
-    const { docId, content } = await req.json();
+    const { docId, content, title } = await req.json();
 
     if (!docId || content === undefined) {
       return NextResponse.json(
@@ -30,24 +29,34 @@ export async function POST(req: NextRequest) {
     const existing = await db.collection("documents").findOne({ docId });
 
     if (existing) {
-      // 🔒 권한 확인: 소유자만 저장 가능
-      if (existing.ownerId !== session.user.id) {
+      const isOwner = existing.ownerId === session.user.id;
+      const isCollaborator = existing.collaborators?.includes(session.user.id);
+
+      if (!isOwner && !isCollaborator) {
         return NextResponse.json(
           { message: "문서에 대한 권한이 없습니다." },
           { status: 403 }
         );
       }
 
-      await db
-        .collection("documents")
-        .updateOne({ docId }, { $set: { content, updatedAt: new Date() } });
+      await db.collection("documents").updateOne(
+        { docId },
+        {
+          $set: {
+            title,
+            content,
+            updatedAt: new Date(),
+          },
+        }
+      );
     } else {
-      // 문서가 없으면 새로 생성
+      // 문서가 존재하지 않으면 새로 생성 (본인 소유로)
       await db.collection("documents").insertOne({
         docId,
         content,
-        title: "", // 선택: 처음엔 제목 없음
+        title,
         ownerId: session.user.id,
+        collaborators: [],
         createdAt: new Date(),
         updatedAt: new Date(),
       });

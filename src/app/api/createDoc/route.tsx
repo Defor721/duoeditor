@@ -21,7 +21,7 @@ export async function POST() {
 
   await db.collection("documents").insertOne({
     docId,
-    title: "",
+    title: "제목 없음",
     content: "",
     ownerId: session.user.id,
     createdAt: new Date(),

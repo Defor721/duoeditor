@@ -24,7 +24,16 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({ content: doc.content }, { status: 200 });
+    return NextResponse.json(
+      {
+        docId: doc.docId,
+        title: doc.title,
+        content: doc.content,
+        ownerId: doc.ownerId,
+        collaborators: doc.collaborators || [],
+      },
+      { status: 200 }
+    );
   } catch (error) {
     console.error(error);
     return NextResponse.json({ message: "서버 에러" }, { status: 500 });

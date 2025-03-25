@@ -4,6 +4,13 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import clientPromise from "../lib/mongodb";
 import { NewDocButton } from "../components/UI/NewDocButton";
+import LogoutButton from "@/app/components/UI/LogoutButton";
+import Link from "next/link";
+
+<header className="flex items-center justify-between mb-6">
+  <h1 className="text-2xl font-bold">📄 내 문서</h1>
+  <LogoutButton /> {/* ✅ 클라이언트 컴포넌트니까 안전 */}
+</header>;
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -31,6 +38,7 @@ export default async function DashboardPage() {
         <p>📧 이메일: {session.user?.email || "없음"}</p>
         <p>🆔 사용자 ID: {session.user?.id}</p>
       </div>
+      <LogoutButton />
 
       <div className="mt-10">
         <h2 className="text-xl font-semibold mb-2">📄 내 문서 목록</h2>
@@ -42,15 +50,28 @@ export default async function DashboardPage() {
           <p className="text-gray-500">작성한 문서가 없습니다.</p>
         ) : (
           <ul className="space-y-3">
-            {docs.map((doc: any) => (
+            {docs.map((doc: any, index: number) => (
               <li
                 key={doc._id.toString()}
-                className="bg-white shadow p-4 rounded hover:bg-gray-50 transition"
+                className={`p-4 rounded shadow transition ${
+                  index === 0
+                    ? "bg-yellow-100 border border-yellow-300"
+                    : "bg-white"
+                }`}
               >
-                <strong>{doc.title || "제목 없음"}</strong>
-                <p className="text-sm text-gray-500 mt-1">
-                  {new Date(doc.updatedAt).toLocaleString()}
-                </p>
+                <Link href={`/editor/${doc.docId}`}>
+                  <div className="cursor-pointer">
+                    <strong>{doc.title || "제목 없음"}</strong>
+                    <p className="text-sm text-gray-500">
+                      {new Date(doc.updatedAt).toLocaleString()}
+                    </p>
+                    {index === 0 && (
+                      <span className="text-xs text-yellow-800 bg-yellow-200 px-2 py-0.5 rounded mt-1 inline-block">
+                        🕒 최근 편집됨
+                      </span>
+                    )}
+                  </div>
+                </Link>
               </li>
             ))}
           </ul>
