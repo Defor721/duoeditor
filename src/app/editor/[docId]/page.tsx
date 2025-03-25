@@ -173,7 +173,7 @@ export default function EditorPage() {
             value={collaboratorEmail}
             onChange={(e) => setCollaboratorEmail(e.target.value)}
             placeholder="협업자 이메일 입력"
-            className="p-2 border rounded w-full"
+            className="p-2 border rounded flex-1"
           />
           <button
             onClick={handleInvite}
