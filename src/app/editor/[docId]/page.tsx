@@ -100,7 +100,8 @@ export default function EditorPage() {
 
   const handleSave = async () => {
     if (!docId || typeof docId !== "string") return alert("문서 ID 오류");
-
+    if (!title.trim()) return alert("제목을 입력해주세요."); // 제목 필수 조건 예시
+    if (!category) return alert("카테고리를 선택해주세요."); // ✅ 카테고리 필수
     try {
       const res = await fetch("/api/saveDoc", {
         method: "POST",
