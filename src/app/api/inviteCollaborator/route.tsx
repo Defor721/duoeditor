@@ -23,6 +23,12 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
+    if (collaboratorEmail === session.user.email) {
+      return NextResponse.json(
+        { message: "본인을 협업자로 초대할 수 없습니다." },
+        { status: 400 }
+      );
+    }
 
     const client = await clientPromise;
     const db = client.db("collab-editor");
