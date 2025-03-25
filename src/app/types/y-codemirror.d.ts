@@ -1,8 +1,12 @@
-declare module "y-codemirror" {
-  import * as Y from "yjs";
-  import { EditorView } from "@codemirror/view";
+import * as Y from "yjs";
+import { Awareness } from "y-protocols/awareness";
 
-  export class CodemirrorBinding {
-    constructor(yText: Y.Text, editor: EditorView, awareness?: any);
-  }
+declare module "y-codemirror" {
+  export function yCollab(
+    doc: Y.Doc,
+    awareness: Awareness,
+    options?: {
+      undoManager?: Y.UndoManager;
+    }
+  ): unknown;
 }

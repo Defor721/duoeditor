@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function WelcomePage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function WelcomePage() {
   return (
     <main className="flex flex-col items-center justify-center h-screen text-center">
       <h1 className="text-4xl font-bold mb-4">
-        ✨ DuoEditor에 오신 걸 환영합니다!
+        ✨ Collab에 오신 걸 환영합니다!
       </h1>
       <p className="mb-6 text-gray-600">
         실시간 협업, 자동 저장, 공유 가능한 문서 에디터

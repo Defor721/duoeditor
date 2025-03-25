@@ -1,10 +1,11 @@
 // app/login/page.tsx
 "use client";
-import { signIn, useSession, signOut } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function LoginPage() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data: session, status } = useSession();
   const router = useRouter();
 

@@ -1,6 +1,6 @@
 // app/dashboard/page.tsx
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/app/lib/auth";
 import { redirect } from "next/navigation";
 import clientPromise from "../lib/mongodb";
 import { NewDocButton } from "../components/UI/NewDocButton";
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
           <p className="text-gray-500">작성한 문서가 없습니다.</p>
         ) : (
           <ul className="space-y-3">
-            {docs.map((doc: any, index: number) => (
+            {docs.map((doc, index: number) => (
               <li
                 key={doc._id.toString()}
                 className={`p-4 rounded shadow transition ${
