@@ -142,11 +142,13 @@ export default function EditorPage() {
 
   if (!isMounted) return <div>Loading...</div>;
 
-  return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">DuoEditor</h1>
+  // 주요 구조는 그대로 두고, UI 요소 중심 Tailwind 리디자인
 
+  return (
+    <div className="min-h-screen bg-gray-50 px-6 py-8">
+      {/* 헤더 */}
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-extrabold text-gray-800">📝 DuoEditor</h1>
         <button
           onClick={() => router.push("/dashboard")}
           className="text-sm text-blue-600 hover:underline"
@@ -155,74 +157,85 @@ export default function EditorPage() {
         </button>
       </div>
 
-      <p className="text-gray-500 text-sm mb-4">문서 ID: {docId}</p>
+      {/* 문서 정보 */}
+      <p className="text-sm text-gray-400 mb-2">문서 ID: {docId}</p>
 
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="문서 제목을 입력하세요"
-        className="mb-4 w-full p-2 border rounded text-xl font-semibold"
-      />
+      <div className="space-y-4 mb-6">
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="📌 문서 제목을 입력하세요"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+        />
 
-      <select
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-        className="mb-4 w-full p-2 border rounded"
-      >
-        <option value="">카테고리 선택</option>
-        <option value="기획">기획</option>
-        <option value="개발">개발</option>
-        <option value="디자인">디자인</option>
-        <option value="기타">기타</option>
-      </select>
+        <select
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-200"
+        >
+          <option value="">📂 카테고리 선택</option>
+          <option value="기획">기획</option>
+          <option value="개발">개발</option>
+          <option value="디자인">디자인</option>
+          <option value="기타">기타</option>
+        </select>
+      </div>
 
-      <button
-        onClick={handleSave}
-        className="mb-6 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-      >
-        💾 저장
-      </button>
+      {/* 저장 버튼 */}
+      <div className="mb-8">
+        <button
+          onClick={handleSave}
+          className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition shadow"
+        >
+          💾 저장하기
+        </button>
+      </div>
 
-      {/* 🔥 실시간 접속 중인 협업자 */}
+      {/* 실시간 접속자 목록 */}
       {onlineUsers.length > 0 && (
-        <div className="mb-6 bg-blue-50 p-3 rounded">
-          <p className="font-semibold mb-2">🟢 실시간 접속자</p>
-          <ul className="flex flex-wrap gap-2 text-sm">
+        <div className="mb-8 bg-blue-50 border border-blue-100 p-4 rounded-lg shadow-sm">
+          <p className="font-semibold mb-2 text-blue-800">
+            🟢 현재 접속 중인 사용자
+          </p>
+          <div className="flex flex-wrap gap-2">
             {onlineUsers.map((user, idx) => (
-              <li
+              <span
                 key={idx}
-                className="bg-white border border-blue-200 px-2 py-1 rounded shadow-sm"
+                className="bg-white border border-blue-200 px-3 py-1 rounded-full text-sm text-blue-700 shadow-sm"
               >
                 {user.name || user.email}
-              </li>
+              </span>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
-      {/* 🔍 초대된 협업자 */}
-      <div className="mb-6">
-        <div className="flex gap-2 items-center mb-2">
+      {/* 협업자 초대 */}
+      <div className="mb-8 p-4 bg-white border rounded-lg shadow-sm">
+        <p className="font-semibold mb-3 text-gray-800">👥 협업자 초대</p>
+        <div className="flex gap-2 mb-3">
           <input
             type="email"
             value={collaboratorEmail}
             onChange={(e) => setCollaboratorEmail(e.target.value)}
-            placeholder="협업자 이메일 입력"
-            className="p-2 border rounded flex-1"
+            placeholder="이메일 입력"
+            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
           />
           <button
             onClick={handleInvite}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
           >
             ➕ 초대
           </button>
         </div>
 
         {collaborators.length > 0 && (
-          <div className="bg-gray-100 p-3 rounded">
-            <p className="font-semibold mb-1">📋 초대된 협업자</p>
-            <ul className="list-disc ml-5 text-sm text-gray-700">
+          <div className="bg-gray-50 p-3 rounded">
+            <p className="text-sm font-medium text-gray-700 mb-1">
+              📋 초대된 협업자
+            </p>
+            <ul className="list-disc list-inside text-sm text-gray-600">
               {collaborators.map((user) => (
                 <li key={user.id}>{user.email}</li>
               ))}
@@ -231,12 +244,15 @@ export default function EditorPage() {
         )}
       </div>
 
-      <CodeMirror
-        value={content}
-        height="400px"
-        extensions={[]}
-        onChange={handleContentChange}
-      />
+      {/* 코드 에디터 */}
+      <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
+        <CodeMirror
+          value={content}
+          height="400px"
+          extensions={[]}
+          onChange={handleContentChange}
+        />
+      </div>
     </div>
   );
 }
