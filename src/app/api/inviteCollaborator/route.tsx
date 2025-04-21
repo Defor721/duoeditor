@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
           <p><b>${session.user.name || session.user.email}</b> 님이 당신을 문서에 초대했습니다.</p>
           <p><b>문서 제목:</b> ${doc.title || "제목 없음"}</p>
           <br/>
-          <a href="https://your-site.com/editor/${docId}" style="background-color:#4f46e5;color:white;padding:10px 20px;border-radius:5px;text-decoration:none;">문서 열기</a>
+          <a href="https://duoeditor.vercel.app/editor/${docId}" style="background-color:#4f46e5;color:white;padding:10px 20px;border-radius:5px;text-decoration:none;">문서 열기</a>
         </div>
       `,
     });
