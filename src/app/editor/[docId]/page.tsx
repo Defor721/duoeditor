@@ -224,20 +224,28 @@ export default function EditorPage() {
       {/* 협업자 초대 */}
       <div className="mb-8 p-4 bg-white border rounded-lg shadow-sm">
         <p className="font-semibold mb-3 text-gray-800">👥 협업자 초대</p>
-        <div className="flex gap-2 mb-3">
-          <input
-            type="email"
-            value={collaboratorEmail}
-            onChange={(e) => setCollaboratorEmail(e.target.value)}
-            placeholder="이메일 입력"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
-          />
-          <button
-            onClick={handleInvite}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
-          >
-            ➕ 초대
-          </button>
+
+        <div className="flex flex-col gap-1 mb-3">
+          <div className="flex gap-2">
+            <input
+              type="email"
+              value={collaboratorEmail}
+              onChange={(e) => setCollaboratorEmail(e.target.value)}
+              placeholder="이메일 입력"
+              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
+            />
+            <button
+              onClick={handleInvite}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            >
+              ➕ 초대
+            </button>
+          </div>
+
+          <p className="text-sm text-gray-500 ml-1">
+            에디터를 사용해 본 사용자만 초대할 수 있습니다. 본인 이메일은 초대할
+            수 없습니다.
+          </p>
         </div>
 
         {collaborators.length > 0 && (
