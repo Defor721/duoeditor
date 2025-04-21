@@ -17,6 +17,7 @@
     "next-auth": "^4.24.11",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "resend": "^4.3.0",
     "y-codemirror": "^3.0.1",
     "y-websocket": "^2.1.0"
   },

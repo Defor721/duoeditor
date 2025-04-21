@@ -5,7 +5,6 @@ import dynamic from "next/dynamic";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
-// CodeMirror 동적 import
 const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), {
   ssr: false,
 });
@@ -31,7 +30,9 @@ export default function EditorPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [collaboratorEmail, setCollaboratorEmail] = useState("");
   const [collaborators, setCollaborators] = useState<Collaborator[]>([]);
-  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]); // ✅ 실시간 접속자 목록
+  const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
+  const [loading, setLoading] = useState(false); // ✅ 로딩 추가
+
   const socketRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -41,7 +42,6 @@ export default function EditorPage() {
   useEffect(() => {
     if (!docId || typeof docId !== "string") return;
 
-    // 문서 데이터 불러오기
     fetch(`/api/getDoc?docId=${docId}`)
       .then((res) => res.json())
       .then((data) => {
@@ -50,12 +50,10 @@ export default function EditorPage() {
         if (data.category) setCategory(data.category);
       });
 
-    // 협업자 목록 불러오기
     fetch(`/api/getCollaborators?docId=${docId}`)
       .then((res) => res.json())
       .then((data) => setCollaborators(data || []));
 
-    // WebSocket 연결
     const socket = new WebSocket(process.env.NEXT_PUBLIC_WS_URL!);
     socketRef.current = socket;
 
@@ -100,9 +98,12 @@ export default function EditorPage() {
 
   const handleSave = async () => {
     if (!docId || typeof docId !== "string") return alert("문서 ID 오류");
-    if (!title.trim()) return alert("제목을 입력해주세요."); // 제목 필수 조건 예시
-    if (!category) return alert("카테고리를 선택해주세요."); // ✅ 카테고리 필수
+    if (!title.trim()) return alert("제목을 입력해주세요.");
+    if (!category) return alert("카테고리를 선택해주세요.");
+
     try {
+      setLoading(true);
+
       const res = await fetch("/api/saveDoc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -113,6 +114,9 @@ export default function EditorPage() {
       else alert("❌ 저장 실패");
     } catch (error) {
       console.error("저장 오류:", error);
+      alert("❌ 저장 중 에러 발생");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -141,8 +145,6 @@ export default function EditorPage() {
   };
 
   if (!isMounted) return <div>Loading...</div>;
-
-  // 주요 구조는 그대로 두고, UI 요소 중심 Tailwind 리디자인
 
   return (
     <div className="min-h-screen bg-gray-50 px-6 py-8">
@@ -186,9 +188,17 @@ export default function EditorPage() {
       <div className="mb-8">
         <button
           onClick={handleSave}
-          className="bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition shadow"
+          disabled={loading}
+          className="relative bg-green-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-green-700 transition shadow disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
-          💾 저장하기
+          {loading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              저장 중...
+            </>
+          ) : (
+            "💾 저장하기"
+          )}
         </button>
       </div>
 

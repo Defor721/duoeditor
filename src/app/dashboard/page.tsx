@@ -10,7 +10,7 @@ export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
 
   if (!session) {
-    redirect("/login");
+    redirect("/");
   }
 
   const categories = ["기획", "개발", "디자인", "기타"];
