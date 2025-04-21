@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
 
     // ✅ 초대 메일 보내기
     await resend.emails.send({
-      from: "DuoEditor 초대 <noreply@duoeditor.com>",
+      from: "DuoEditor <onboarding@resend.dev>",
       to: collaboratorEmail,
       subject: "DuoEditor 문서에 초대되었습니다",
       html: `
