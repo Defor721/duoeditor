@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function LoginPage() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data: session, status } = useSession();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +21,7 @@ export default function LoginPage() {
       await signIn("github");
     } catch (error) {
       console.error(error);
-      setIsLoading(false); // 에러 발생 시 로딩 해제
+      setIsLoading(false);
     }
   };
 
@@ -41,7 +40,7 @@ export default function LoginPage() {
         <button
           onClick={handleSignIn}
           disabled={isLoading}
-          className={`w-full py-3 rounded-full transition 
+          className={`w-full py-3 rounded-full transition flex items-center justify-center 
             ${
               isLoading
                 ? "bg-gray-400 cursor-not-allowed"
@@ -49,7 +48,33 @@ export default function LoginPage() {
             } 
             text-white`}
         >
-          {isLoading ? "로딩 중..." : "🚀 GitHub로 계속하기"}
+          {isLoading ? (
+            <div className="flex items-center gap-2">
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                ></path>
+              </svg>
+              로딩 중...
+            </div>
+          ) : (
+            "🚀 GitHub로 계속하기"
+          )}
         </button>
 
         <div className="mt-6 text-sm text-gray-400">
