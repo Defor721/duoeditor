@@ -1,18 +1,29 @@
 "use client";
+
 import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (status === "authenticated") {
       router.push("/dashboard");
     }
   }, [status, router]);
+
+  const handleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      await signIn("github");
+    } catch (error) {
+      console.error(error);
+      setIsLoading(false); // 에러 발생 시 로딩 해제
+    }
+  };
 
   return (
     <main className="flex items-center justify-center min-h-screen bg-gray-50 px-4">
@@ -27,10 +38,17 @@ export default function LoginPage() {
         </p>
 
         <button
-          onClick={() => signIn("github")}
-          className="w-full bg-black text-white py-3 rounded-full hover:bg-gray-800 transition"
+          onClick={handleSignIn}
+          disabled={isLoading}
+          className={`w-full py-3 rounded-full transition 
+            ${
+              isLoading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-black hover:bg-gray-800"
+            } 
+            text-white`}
         >
-          🚀 GitHub로 계속하기
+          {isLoading ? "로딩 중..." : "🚀 GitHub로 계속하기"}
         </button>
 
         <div className="mt-6 text-sm text-gray-400">
