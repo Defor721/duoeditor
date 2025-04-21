@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/lib/auth";
 import clientPromise from "@/app/lib/mongodb";
-import { resend } from "@/app/lib/resend"; // ✅ 추가
+import { transporter } from "@/app/lib/nodemailer";
 
 export async function POST(req: NextRequest) {
   try {
@@ -92,8 +92,10 @@ export async function POST(req: NextRequest) {
     );
 
     // ✅ 초대 메일 보내기
-    await resend.emails.send({
-      from: "DuoEditor <onboarding@resend.dev>",
+
+    // 초대가 성공했을 때 메일 보내기
+    await transporter.sendMail({
+      from: `"DuoEditor 초대" <${process.env.SMTP_USER}>`,
       to: collaboratorEmail,
       subject: "DuoEditor 문서에 초대되었습니다",
       html: `
@@ -102,7 +104,7 @@ export async function POST(req: NextRequest) {
           <p><b>${session.user.name || session.user.email}</b> 님이 당신을 문서에 초대했습니다.</p>
           <p><b>문서 제목:</b> ${doc.title || "제목 없음"}</p>
           <br/>
-          <a href="https://duoeditor.vercel.app/editor/${docId}" style="background-color:#4f46e5;color:white;padding:10px 20px;border-radius:5px;text-decoration:none;">문서 열기</a>
+          <a href="https://your-site.com/editor/${docId}" style="background-color:#4f46e5;color:white;padding:10px 20px;border-radius:5px;text-decoration:none;">문서 열기</a>
         </div>
       `,
     });
